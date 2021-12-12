@@ -189,7 +189,7 @@ Comparison = Struct.new(:current, :previous) do
       end
       comparisons.group_by(&:grouping_key).sort.each do |(_sort_key, group_title), group|
         out.puts
-        out.puts "## <a name='#{group_slug[group_title]}'></a>#{group_title}"
+        out.puts "## <a name='##{group_slug[group_title]}'></a>#{group_title}"
         group.each do |comparison|
           changes_summary = [
             [-> x { "+#{x}"}, comparison.added.size],
