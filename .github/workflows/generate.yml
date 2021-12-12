@@ -1,5 +1,5 @@
 on:
-  workflow_dispatch: {}
+  push: {}
 jobs:
   generate:
     runs-on: ubuntu-latest
@@ -14,8 +14,8 @@ jobs:
           - 96ca8d915 # v18.0.0-beta
           - f2a59df48 # v18.0.0-rc.0
     env:
-      REACT_COMMIT: v17.0.0
-      REACT_VER: v17.0.0
+      REACT_COMMIT: ${{ matrix.commit }}
+      CHAN: ${{ matrix.chan }}
     steps:
       - uses: actions/setup-node@v1
         with:
@@ -23,7 +23,9 @@ jobs:
       - run: git clone https://github.com/facebook/react.git --branch $REACT_COMMIT --single-branch react
       - run: cd react && yarn install
       - run: cd react && mkdir -p results
-      - run: cd react && yarn test -r=$CHAN --env=development --json --outputFile=results/react-tests-$REACT_COMMIT-$CHAN.json --testLocationInResults
+      - run: cd react && yarn test -r=$CHAN --env=development --json --outputFile=$OUT_FILE --testLocationInResults
+        env:
+          OUT_FILE: results/react-tests-${{ env.REACT_COMMIT }}-${{ env.CHAN }}.json
       - uses: actions/upload-artifact@v2
         with:
           name: results
