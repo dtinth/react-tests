@@ -173,7 +173,7 @@ Comparison = Struct.new(:current, :previous) do
     filename = report_filename
     return unless filename
     File.open "reports/#{filename}", 'w' do |out|
-      out.puts "# Test comparison between React #{previous.version} and #{current.version}"
+      out.puts "# Test comparison between React [#{previous.version}](#{previous.report_filename}) and [#{current.version}](#{current.report_filename})"
       out.puts "## Table of contents"
       out.puts "| Suite | Added | Removed |"
       out.puts "| --- | ---:| ---:|"
