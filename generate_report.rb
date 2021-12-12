@@ -78,7 +78,7 @@ TestSuite = Struct.new(:test_result, :data) do
         0
       elsif package_name == 'packages/react-dom'
         1
-      elsif package_name =~ /^packages\/(react-reconciler|react-test-renderer|scheduler)/
+      elsif package_name =~ /^packages\/(react-reconciler|react-test-renderer|scheduler|use-sync-external-store)/
         2
       elsif package_name =~ /^packages\/react-devtools/
         93
