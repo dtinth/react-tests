@@ -1,5 +1,5 @@
 on:
-  push: {}
+  workflow_dispatch: {}
 jobs:
   generate:
     runs-on: ubuntu-latest
@@ -10,9 +10,9 @@ jobs:
           - v17.0.0
           - v17.0.1
           - v17.0.2
-          - e6be2d531
-          - 96ca8d915
-          - f2a59df48
+          - e6be2d531 # v18.0.0-alpha
+          - 96ca8d915 # v18.0.0-beta
+          - f2a59df48 # v18.0.0-rc.0
     env:
       REACT_COMMIT: v17.0.0
       REACT_VER: v17.0.0
