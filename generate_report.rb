@@ -174,6 +174,15 @@ Comparison = Struct.new(:current, :previous) do
     return unless filename
     File.open "reports/#{filename}", 'w' do |out|
       out.puts "# Test comparison between React #{previous.version} and #{current.version}"
+      out.puts "## Table of contents"
+      out.puts "| Suite | Added | Removed |"
+      out.puts "| --- | ---:| ---:|"
+      comparisons.group_by(&:grouping_key).sort.each do |(_sort_key, group_title), group|
+        group.each do |comparison|
+          n = -> x, op { x > 0 ? "#{op}#{x}" : "-" }
+          out.puts "| [`#{comparison.suite.name}`](##{comparison.slug}) | #{n[comparison.added.size, ?+]} | #{n[comparison.removed.size, ?-]} |"
+        end
+      end
       comparisons.group_by(&:grouping_key).sort.each do |(_sort_key, group_title), group|
         out.puts
         out.puts "## #{group_title}"
@@ -185,7 +194,7 @@ Comparison = Struct.new(:current, :previous) do
             .reject { |_, size| size == 0 }
             .map { |op, size| op[size] }
             .join(', ')
-          out.puts "- `#{comparison.suite_name}` (#{changes_summary})"
+          out.puts "- <a name='#{comparison.slug}'></a>`#{comparison.suite_name}` (#{changes_summary})"
           writer = AncestralWriter.new(out)
           comparison.added.each do |test|
             writer.write test.ancestor_titles, "- (+) #{test.link}"
@@ -223,6 +232,10 @@ end
 SuiteComparison = Struct.new(:current, :previous) do
   def suite_name
     current.name || previous.name
+  end
+
+  def slug
+    suite_name.gsub(/[^a-zA-Z0-9]/, ' ').downcase.split.join('-')
   end
 
   def suite
