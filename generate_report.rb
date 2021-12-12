@@ -177,15 +177,19 @@ Comparison = Struct.new(:current, :previous) do
       out.puts "## Table of contents"
       out.puts "| Suite | Added | Removed |"
       out.puts "| --- | ---:| ---:|"
+      group_slug = -> title { 'group-' + title.downcase.gsub(/[^a-z0-9]+/, ' ').split.join('-') }
       comparisons.group_by(&:grouping_key).sort.each do |(_sort_key, group_title), group|
+        n = -> x, op { x > 0 ? "#{op}#{x}" : "-" }
+        total_added = group.sum { |c| c.added.size }
+        total_removed = group.sum { |c| c.removed.size }
+        out.puts "| [**#{group_title}**](#{group_slug[group_title]}) | #{n[total_added, ?+]} | #{n[total_removed, ?-]} |"
         group.each do |comparison|
-          n = -> x, op { x > 0 ? "#{op}#{x}" : "-" }
           out.puts "| [`#{comparison.suite.name}`](##{comparison.slug}) | #{n[comparison.added.size, ?+]} | #{n[comparison.removed.size, ?-]} |"
         end
       end
       comparisons.group_by(&:grouping_key).sort.each do |(_sort_key, group_title), group|
         out.puts
-        out.puts "## #{group_title}"
+        out.puts "## <a name='#{group_slug[group_title]}'></a>#{group_title}"
         group.each do |comparison|
           changes_summary = [
             [-> x { "+#{x}"}, comparison.added.size],
