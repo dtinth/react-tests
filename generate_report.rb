@@ -227,8 +227,6 @@ SuiteComparison = Struct.new(:current, :previous) do
   end
 
   def changed?
-    return true if !current.found?
-    return true if !previous.found?
     added.size > 0 || removed.size > 0
   end
 
