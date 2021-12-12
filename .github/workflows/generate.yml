@@ -1,0 +1,18 @@
+on:
+  push: {}
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    env:
+      REACT_COMMIT: v17.0.0
+      REACT_VER: v17.0.0
+      CHAN: stable
+    steps:
+      - run: git clone https://github.com/facebook/react.git --branch $REACT_COMMIT --single-branch react
+      - run: cd react && yarn install
+      - run: cd react && mkdir -p results
+      - run: cd react && yarn test -r=$CHAN --env=development --json --outputFile=results/react-tests.json --testLocationInResults
+      - uses: actions/upload-artifact@v2
+        with:
+          name: results
+          path: react/results/
