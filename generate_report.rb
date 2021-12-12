@@ -66,12 +66,34 @@ TestSuite = Struct.new(:test_result, :data) do
 
   def test_names
     return [] unless data
-    tests.map { |r| r.full_name }
+    @test_names ||= tests.map { |r| r.full_name }
+  end
+
+  def grouping_key
+    return nil unless data
+    path_segments = name.split('/')
+    package_name = path_segments.take(2).join('/')
+    sort_key = begin
+      if package_name == 'packages/react'
+        0
+      elsif package_name == 'packages/react-dom'
+        1
+      elsif package_name =~ /^packages\/(react-reconciler|react-test-renderer|scheduler)/
+        2
+      elsif package_name =~ /^packages\/react-devtools/
+        93
+      elsif package_name =~ /^packages\/react-/
+        92
+      else
+        99
+      end
+    end
+    [sort_key, package_name]
   end
 
   def tests
     return [] unless data
-    data['assertionResults']
+    @tests ||= data['assertionResults']
       .filter { |r| r['status'] == 'passed' }
       .reject { |r| r['fullName']['[GATED, SHOULD FAIL]'] }
       .map { |r| Test.new(self, r) }
@@ -151,15 +173,20 @@ Comparison = Struct.new(:current, :previous) do
     filename = report_filename
     return unless filename
     File.open "reports/#{filename}", 'w' do |out|
-      comparisons.each do |comparison|
-        out.puts "- `#{comparison.suite_name}`"
-        writer = AncestralWriter.new(out)
-        comparison.added.each do |test|
-          writer.write test.ancestor_titles, "- (+) #{test.link}"
-        end
-        writer = AncestralWriter.new(out)
-        comparison.removed.each do |test|
-          writer.write test.ancestor_titles, "- (-) #{test.link}"
+      out.puts "# Test comparison between React #{previous.version} and #{current.version}"
+      comparisons.group_by(&:grouping_key).sort.each do |(_sort_key, group_title), group|
+        out.puts
+        out.puts "## #{group_title}"
+        group.each do |comparison|
+          out.puts "- `#{comparison.suite_name}`"
+          writer = AncestralWriter.new(out)
+          comparison.added.each do |test|
+            writer.write test.ancestor_titles, "- (+) #{test.link}"
+          end
+          writer = AncestralWriter.new(out)
+          comparison.removed.each do |test|
+            writer.write test.ancestor_titles, "- (-) #{test.link}"
+          end
         end
       end
     end
@@ -171,6 +198,7 @@ class AncestralWriter
     @out = out
     @current = []
   end
+
   def write(ancestor_titles, text)
     longest_common_size = @current.zip(ancestor_titles).take_while { |a, b| a == b }.size
     while @current.size > longest_common_size
@@ -190,11 +218,17 @@ SuiteComparison = Struct.new(:current, :previous) do
     current.name || previous.name
   end
 
+  def suite
+    current.found? ? current : previous
+  end
+
+  def grouping_key
+    suite.grouping_key
+  end
+
   def changed?
     return true if !current.found?
     return true if !previous.found?
-    added = current.test_names - previous.test_names
-    removed = previous.test_names - current.test_names
     added.size > 0 || removed.size > 0
   end
 
