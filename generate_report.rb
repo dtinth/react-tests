@@ -179,8 +179,8 @@ Comparison = Struct.new(:current, :previous) do
         out.puts "## #{group_title}"
         group.each do |comparison|
           changes_summary = [
-            [-> x { "<ins>+#{x}</ins>"}, comparison.added.size],
-            [-> x { "<del>-#{x}</del>"}, comparison.removed.size],
+            [-> x { "+#{x}"}, comparison.added.size],
+            [-> x { "-#{x}"}, comparison.removed.size],
           ]
             .reject { |_, size| size == 0 }
             .map { |op, size| op[size] }
@@ -188,11 +188,11 @@ Comparison = Struct.new(:current, :previous) do
           out.puts "- `#{comparison.suite_name}` (#{changes_summary})"
           writer = AncestralWriter.new(out)
           comparison.added.each do |test|
-            writer.write test.ancestor_titles, "- <ins>(+)</ins> #{test.link}"
+            writer.write test.ancestor_titles, "- (+) #{test.link}"
           end
           writer = AncestralWriter.new(out)
           comparison.removed.each do |test|
-            writer.write test.ancestor_titles, "- <del>(-)</del> #{test.link}"
+            writer.write test.ancestor_titles, "- (-) <del>#{test.link}</del>"
           end
         end
       end
