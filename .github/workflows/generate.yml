@@ -20,7 +20,8 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 14.x
-      - run: git clone https://github.com/facebook/react.git --branch $REACT_COMMIT --single-branch react
+      - run: git clone https://github.com/facebook/react.git
+      - run: cd react && git checkout $REACT_COMMIT
       - run: cd react && yarn install
       - run: cd react && mkdir -p results
       - run: cd react && yarn test -r=$CHAN --env=development --json --outputFile=$OUT_FILE --testLocationInResults
